@@ -21,11 +21,13 @@ const JWT_SECRET = "supersecretkey";
 // ------------------- SIGNUP -------------------
 router.post("/signup", async (req, res) => {
   try {
+    console.log('📝 Signup request received:', req.body);
     const { name, email, password, role } = req.body;
 
     // check if user already exists
     const userCheck = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
     if (userCheck.rows.length > 0) {
+      console.log('⚠️ User already exists:', email);
       return res.status(400).json({ error: "User already exists" });
     }
 
@@ -38,9 +40,10 @@ router.post("/signup", async (req, res) => {
       [name, email, hashedPassword, role || "citizen"]
     );
 
+    console.log('✅ User registered successfully:', newUser.rows[0]);
     res.status(201).json({ message: "User registered successfully", user: newUser.rows[0] });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Signup error:', err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -48,19 +51,23 @@ router.post("/signup", async (req, res) => {
 // ------------------- LOGIN -------------------
 router.post("/login", async (req, res) => {
   try {
+    console.log('🔐 Login request received:', req.body);
     const { email, password } = req.body;
 
     // find user
     const userCheck = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
     if (userCheck.rows.length === 0) {
+      console.log('⚠️ User not found:', email);
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
     const user = userCheck.rows[0];
+    console.log('👤 User found:', user.email);
 
     // compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('⚠️ Password mismatch for:', email);
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
@@ -69,9 +76,10 @@ router.post("/login", async (req, res) => {
       expiresIn: "1h",
     });
 
+    console.log('✅ Login successful for:', email);
     res.json({ message: "Login successful", token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Login error:', err);
     res.status(500).json({ error: "Server error" });
   }
 });

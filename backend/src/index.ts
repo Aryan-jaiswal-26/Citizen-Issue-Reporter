@@ -45,6 +45,26 @@ app.get("/", (req, res) => {
   res.send("🚀 Civic Sense Backend is running!");
 });
 
+// Dashboard stats route
+app.get("/dashboard/stats", async (req, res) => {
+  try {
+    const pendingResult = await pool.query("SELECT COUNT(*) FROM issues WHERE status = 'pending'");
+    const inProgressResult = await pool.query("SELECT COUNT(*) FROM issues WHERE status = 'in_progress'");
+    const resolvedResult = await pool.query("SELECT COUNT(*) FROM issues WHERE status = 'resolved'");
+    const slaBreachResult = await pool.query("SELECT COUNT(*) FROM issues WHERE created_at < NOW() - INTERVAL '7 days' AND status != 'resolved'");
+    
+    res.json({
+      pending: parseInt(pendingResult.rows[0].count),
+      inProgress: parseInt(inProgressResult.rows[0].count),
+      resolved: parseInt(resolvedResult.rows[0].count),
+      slaBreach: parseInt(slaBreachResult.rows[0].count)
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 // Example: test DB route
 app.get("/db-test", async (req, res) => {
   try {

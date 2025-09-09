@@ -38,19 +38,24 @@ export default function IssueMap({ issues, onMarkerPress }: IssueMapProps) {
         showsUserLocation
         showsMyLocationButton
       >
-        {issues.map((issue) => (
-          <Marker
-            key={issue.id}
-            coordinate={{
-              latitude: issue.latitude || initialRegion.latitude,
-              longitude: issue.longitude || initialRegion.longitude,
-            }}
-            title={issue.title}
-            description={issue.category}
-            pinColor={getMarkerColor(issue.category)}
-            onPress={() => onMarkerPress(issue)}
-          />
-        ))}
+        {issues.map((issue) => {
+          const lat = typeof issue.latitude === 'string' ? parseFloat(issue.latitude) : issue.latitude;
+          const lng = typeof issue.longitude === 'string' ? parseFloat(issue.longitude) : issue.longitude;
+          
+          return (
+            <Marker
+              key={issue.id}
+              coordinate={{
+                latitude: lat || initialRegion.latitude,
+                longitude: lng || initialRegion.longitude,
+              }}
+              title={issue.title}
+              description={issue.category}
+              pinColor={getMarkerColor(issue.category)}
+              onPress={() => onMarkerPress(issue)}
+            />
+          );
+        })}
       </MapView>
     </View>
   );
